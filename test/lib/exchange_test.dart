@@ -17,8 +17,8 @@ main({bool enableLogger = true}) {
   }
 
   group("Exchanges:", () {
-    Client client;
-    Client client2;
+    late Client client;
+    late Client client2;
 
     setUp(() {
       client = Client();
@@ -136,9 +136,9 @@ main({bool enableLogger = true}) {
       consumer.listen((AmqpMessage message) {
         expect(message.payloadAsString, equals('{"message":"1234"}'));
         expect(message.payloadAsJson, equals({"message": "1234"}));
-        expect(message.payload, equals(message.payloadAsString.codeUnits));
+        expect(message.payload, equals(message.payloadAsString!.codeUnits));
         expect(message.routingKey, equals("test"));
-        expect(message.properties.corellationId, equals("123"));
+        expect(message.properties!.corellationId, equals("123"));
         expect(message.exchangeName, equals("ex_test_1"));
 
         // Reply with echo to sender
@@ -156,7 +156,7 @@ main({bool enableLogger = true}) {
 
       // Bind reply listener
       replyConsumer.listen((AmqpMessage reply) {
-        expect(reply.properties.corellationId, equals("123"));
+        expect(reply.properties!.corellationId, equals("123"));
         expect(reply.payloadAsString, equals('echo:{"message":"1234"}'));
 
         // Pass!

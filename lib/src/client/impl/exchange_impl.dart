@@ -22,8 +22,8 @@ class _ExchangeImpl implements Exchange {
     return completer.future;
   }
 
-  void publish(Object message, String routingKey,
-      {MessageProperties properties,
+  void publish(Object message, String? routingKey,
+      {MessageProperties? properties,
       bool mandatory = false,
       bool immediate = false}) {
     if (!type.isCustom &&
@@ -44,8 +44,8 @@ class _ExchangeImpl implements Exchange {
         properties: properties, payloadContent: message);
   }
 
-  Future<Consumer> bindPrivateQueueConsumer(List<String> routingKeys,
-      {String consumerTag, bool noAck = true}) async {
+  Future<Consumer> bindPrivateQueueConsumer(List<String>? routingKeys,
+      {String? consumerTag, bool noAck = true}) async {
     // Fanout and headers exchanges do not need to specify any keys. Use the default one if none is specified
     if ((type == ExchangeType.FANOUT || type == ExchangeType.HEADERS) &&
         (routingKeys == null || routingKeys.isEmpty)) {
@@ -65,7 +65,7 @@ class _ExchangeImpl implements Exchange {
   }
 
   Future<Consumer> bindQueueConsumer(String queueName, List<String> routingKeys,
-      {String consumerTag, bool noAck = true}) async {
+      {String? consumerTag, bool noAck = true}) async {
     // Fanout and headers exchanges do not need to specify any keys. Use the default one if none is specified
     if ((type == ExchangeType.FANOUT || type == ExchangeType.HEADERS) &&
         (routingKeys == null || routingKeys.isEmpty)) {

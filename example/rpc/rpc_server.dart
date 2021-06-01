@@ -2,13 +2,13 @@ import "dart:io";
 import "package:dart_amqp/dart_amqp.dart";
 
 // Slow implementation of fib
-int fib(int n) {
+int fib(int? n) {
   if (n == 0) {
     return 0;
   } else if (n == 1) {
     return 1;
   }
-  return fib(n - 1) + fib(n - 2);
+  return fib(n! - 1) + fib(n - 2);
 }
 
 void main(List<String> args) async {
@@ -26,7 +26,7 @@ void main(List<String> args) async {
   Consumer consumer = await queue.consume();
   print(" [x] Awaiting RPC request");
   consumer.listen((message) {
-    int n = message.payloadAsJson["n"];
+    int? n = message.payloadAsJson!["n"];
     print(" [.] fib(${n})");
     message.reply(fib(n).toString());
   });

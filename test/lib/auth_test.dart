@@ -16,18 +16,18 @@ class ConnectionStartMock extends Mock implements ConnectionStart {
   final int msgMethodId = 10;
 
   // Message arguments
-  int versionMajor;
-  int versionMinor;
-  Map<String, Object> serverProperties;
-  String mechanisms;
-  String locales;
+  int? versionMajor;
+  int? versionMinor;
+  Map<String, Object?>? serverProperties;
+  String? mechanisms;
+  String? locales;
 
   void serialize(TypeEncoder encoder) {
     encoder
       ..writeUInt16(msgClassId)
       ..writeUInt16(msgMethodId)
-      ..writeUInt8(versionMajor)
-      ..writeUInt8(versionMinor)
+      ..writeUInt8(versionMajor!)
+      ..writeUInt8(versionMinor!)
       ..writeFieldTable(serverProperties)
       ..writeLongString(mechanisms)
       ..writeLongString(locales);
@@ -40,7 +40,7 @@ class ConnectionSecureMock extends Mock implements ConnectionSecure {
   final int msgMethodId = 20;
 
   // Message arguments
-  String challenge;
+  String? challenge;
 
   void serialize(TypeEncoder encoder) {
     encoder
@@ -56,17 +56,17 @@ class ConnectionTuneMock extends Mock implements ConnectionTune {
   final int msgMethodId = 30;
 
   // Message arguments
-  int channelMax;
-  int frameMax;
-  int heartbeat;
+  int? channelMax;
+  int? frameMax;
+  int? heartbeat;
 
   void serialize(TypeEncoder encoder) {
     encoder
       ..writeUInt16(msgClassId)
       ..writeUInt16(msgMethodId)
-      ..writeUInt16(channelMax)
-      ..writeUInt32(frameMax)
-      ..writeUInt16(heartbeat);
+      ..writeUInt16(channelMax!)
+      ..writeUInt32(frameMax!)
+      ..writeUInt16(heartbeat!);
   }
 }
 
@@ -74,7 +74,7 @@ class ConnectionOpenOkMock extends Mock implements ConnectionOpenOk {
   final bool msgHasContent = false;
   final int msgClassId = 10;
   final int msgMethodId = 41;
-  String reserved_1;
+  String? reserved_1;
 
   void serialize(TypeEncoder encoder) {
     encoder
@@ -97,7 +97,7 @@ class ConnectionCloseOkMock extends Mock implements ConnectionCloseOk {
 class FooAuthProvider implements Authenticator {
   String get saslType => "foo";
 
-  String answerChallenge(String challenge) {
+  String? answerChallenge(String? challenge) {
     return null;
   }
 }
@@ -113,16 +113,16 @@ void generateHandshakeMessages(
         ..serverProperties = {"product": "foo"}
         ..mechanisms = "PLAIN"
         ..locales = "en");
-  server.replayList.add(frameWriter.outputEncoder.writer.joinChunks());
-  frameWriter.outputEncoder.writer.clear();
+  server.replayList.add(frameWriter.outputEncoder.writer!.joinChunks());
+  frameWriter.outputEncoder.writer!.clear();
 
   // Challenge - response rounds
   for (int round = 0; round < numChapRounds; round++) {
     // Connection secure
     frameWriter.writeMessage(
         0, ConnectionSecureMock()..challenge = "round${round}");
-    server.replayList.add(frameWriter.outputEncoder.writer.joinChunks());
-    frameWriter.outputEncoder.writer.clear();
+    server.replayList.add(frameWriter.outputEncoder.writer!.joinChunks());
+    frameWriter.outputEncoder.writer!.clear();
   }
 
   // Connection tune
@@ -132,13 +132,13 @@ void generateHandshakeMessages(
         ..channelMax = 0
         ..frameMax = (TuningSettings()).maxFrameSize
         ..heartbeat = 0);
-  server.replayList.add(frameWriter.outputEncoder.writer.joinChunks());
-  frameWriter.outputEncoder.writer.clear();
+  server.replayList.add(frameWriter.outputEncoder.writer!.joinChunks());
+  frameWriter.outputEncoder.writer!.clear();
 
   // Connection open ok
   frameWriter.writeMessage(0, ConnectionOpenOkMock());
-  server.replayList.add(frameWriter.outputEncoder.writer.joinChunks());
-  frameWriter.outputEncoder.writer.clear();
+  server.replayList.add(frameWriter.outputEncoder.writer!.joinChunks());
+  frameWriter.outputEncoder.writer!.clear();
 }
 
 main({bool enableLogger = true}) {
@@ -147,7 +147,7 @@ main({bool enableLogger = true}) {
   }
 
   group("Built-in authentication providers with real server:", () {
-    Client client;
+    late Client client;
 
     tearDown(() {
       return client.close();
@@ -171,9 +171,9 @@ main({bool enableLogger = true}) {
   });
 
   group("Challenge-response:", () {
-    Client client;
-    mock.MockServer server;
-    FrameWriter frameWriter;
+    late Client client;
+    late mock.MockServer server;
+    late FrameWriter frameWriter;
     TuningSettings tuningSettings;
 
     setUp(() {
@@ -194,15 +194,15 @@ main({bool enableLogger = true}) {
 
       // Encode final connection close
       frameWriter.writeMessage(0, ConnectionCloseOkMock());
-      server.replayList.add(frameWriter.outputEncoder.writer.joinChunks());
-      frameWriter.outputEncoder.writer.clear();
+      server.replayList.add(frameWriter.outputEncoder.writer!.joinChunks());
+      frameWriter.outputEncoder.writer!.clear();
 
       await client.connect();
     });
   });
 
   group("Exception handling:", () {
-    Client client;
+    late Client client;
 
     tearDown(() {
       return client.close();
@@ -219,7 +219,7 @@ main({bool enableLogger = true}) {
       } catch (e) {
         expect(e, const TypeMatcher<FatalException>());
         expect(
-            e.message,
+            e,
             startsWith(
                 "Selected authentication provider 'foo' is unsupported by the server"));
       }
@@ -235,7 +235,7 @@ main({bool enableLogger = true}) {
         await client.connect();
       } catch (e) {
         expect(e, const TypeMatcher<FatalException>());
-        expect(e.message, equals("Authentication failed"));
+        expect(e, equals("Authentication failed"));
       }
     });
   });

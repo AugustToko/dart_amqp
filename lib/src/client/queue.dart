@@ -2,11 +2,11 @@ part of dart_amqp.client;
 
 abstract class Queue {
   /// Get the queue name
-  String get name;
+  String? get name;
 
-  int get messageCount;
+  int? get messageCount;
 
-  int get consumerCount;
+  int? get consumerCount;
 
   /// Get the [Channel] where this [Queue] was declared
   Channel get channel;
@@ -31,16 +31,16 @@ abstract class Queue {
   /// The [routingKey] parameter cannot be empty or null unless [exchange] is of type [ExchangeType.FANOUT] or [ExchangeType.HEADERS].
   /// For any other [exchange] type, passing an empty or null [routingKey] will cause an [ArgumentError]
   /// to be thrown.
-  Future<Queue> bind(Exchange exchange, String routingKey,
-      {bool noWait, Map<String, Object> arguments});
+  Future<Queue> bind(Exchange? exchange, String routingKey,
+      {bool? noWait, Map<String, Object>? arguments});
 
   /// Unbind this queue from [exchange] with [routingKey] and return a [Future<Queue>] to the unbound queue.
   ///
   /// The [routingKey] parameter cannot be empty or null unless [exchange] is of type [ExchangeType.FANOUT] or [ExchangeType.HEADERS].
   /// For any other [exchange] type, passing an empty or null [routingKey] will cause an [ArgumentError]
   /// to be thrown.
-  Future<Queue> unbind(Exchange exchange, String routingKey,
-      {bool noWait, Map<String, Object> arguments});
+  Future<Queue> unbind(Exchange? exchange, String routingKey,
+      {bool? noWait, Map<String, Object>? arguments});
 
   /// Publish [message] to the queue. [message] should be either a [Uint8List], a [String], a [Map] or [Iterable].
   /// If [message] is [Map] or [Iterable] it will be encoded as JSON and the appropriate message properties
@@ -56,7 +56,7 @@ abstract class Queue {
   /// if it cannot route them. If the flag is set to false, the server will queue the message even though
   /// there is no guarantee that it will ever be consumed.
   void publish(Object message,
-      {MessageProperties properties,
+      {MessageProperties? properties,
       bool mandatory = false,
       bool immediate = false});
 
@@ -72,10 +72,10 @@ abstract class Queue {
   /// If the [exclusive] flag is set then only this consumer has access to the queue. If the flag is set
   /// and the queue already has attached consumers, then the server will raise an error.
   Future<Consumer> consume(
-      {String consumerTag,
+      {String? consumerTag,
       bool noLocal = false,
       bool noAck = true,
       bool exclusive = false,
       bool noWait = false,
-      Map<String, Object> arguments});
+      Map<String, Object>? arguments});
 }

@@ -17,7 +17,7 @@ main({bool enableLogger = true}) {
   }
 
   group("Client test:", () {
-    Client client;
+    late Client client;
 
     tearDown(() async {
       await client.close();
@@ -63,7 +63,7 @@ main({bool enableLogger = true}) {
         await client.channel();
       } catch (ex) {
         expect(ex, const TypeMatcher<StateError>());
-        expect(ex.message,
+        expect(ex,
             equals("Cannot allocate channel; channel limit exceeded (max 1)"));
       }
     });
@@ -93,7 +93,7 @@ main({bool enableLogger = true}) {
       """;
 
   group("Client TLS test:", () {
-    Client client;
+    late Client client;
 
     tearDown(() async {
       await client.close();

@@ -16,7 +16,7 @@ void main() async {
   Consumer consumer = await queue.consume(noAck: false);
   print(" [*] Waiting for messages. To exit, press CTRL+C");
   consumer.listen((message) {
-    String payload = message.payloadAsString;
+    String payload = message.payloadAsString!;
     print(" [x] Received ${payload}");
     // Emulate a long task by sleeping 1 second for each '.' character in message
     sleep(Duration(seconds: payload.split(".").length));

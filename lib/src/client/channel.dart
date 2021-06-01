@@ -19,19 +19,19 @@ abstract class Channel {
   ///
   /// The [autoDelete] flag will notify the server that the queue should be deleted when no more connections
   /// are using it.
-  Future<Queue> queue(String name,
+  Future<Queue> queue(String? name,
       {bool passive = false,
       bool durable = false,
       bool exclusive = false,
       bool autoDelete = false,
       bool noWait = false,
-      Map<String, Object> arguments});
+      Map<String, Object>? arguments});
 
   /// A convenience method for allocating private queues. The client will allocate
   /// an exclusive queue with a random, server-assigned name and return a [Future<Queue>]
   /// to be completed when the server responds.
   Future<Queue> privateQueue(
-      {bool noWait = false, Map<String, Object> arguments});
+      {bool noWait = false, Map<String, Object>? arguments});
 
   /// Define an exchange named [name] of type [type] and return a [Future<Exchange>] when the exchange is allocated.
   ///
@@ -39,16 +39,16 @@ abstract class Channel {
   /// returned future will fail with a [ExchangeNotFoundException] if the exchange does not exist.
   ///
   /// The [durable] flag will enable the exchange to persist across server restarts.
-  Future<Exchange> exchange(String name, ExchangeType type,
+  Future<Exchange> exchange(String? name, ExchangeType? type,
       {bool passive = false,
       bool durable = false,
       bool noWait = false,
-      Map<String, Object> arguments});
+      Map<String, Object>? arguments});
 
   /// Setup the [prefetchSize] and [prefetchCount] QoS parameters.
   /// Returns a [Future<Channel>] with the affected channel once the server
   /// confirms the updated QoS settings.
-  Future<Channel> qos(int prefetchSize, int prefetchCount);
+  Future<Channel> qos(int? prefetchSize, int prefetchCount);
 
   /// Acknowledge a [deliveryTag]. The [multiple] flag can be set to true
   /// to notify the server that the client ack-ed all pending messages up to [deliveryTag].
@@ -91,7 +91,7 @@ abstract class Channel {
   /// Register a listener for basicReturn Messages
   StreamSubscription<BasicReturnMessage> basicReturnListener(
       void onData(BasicReturnMessage message),
-      {Function onError,
-      void onDone(),
-      bool cancelOnError});
+      {Function? onError,
+      void onDone()?,
+      bool? cancelOnError});
 }

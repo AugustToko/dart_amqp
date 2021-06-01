@@ -14,7 +14,7 @@ class ChannelOpen implements Message {
   final int msgMethodId = 10;
 
   // Message arguments
-  String reserved_1;
+  String? reserved_1;
 
   ChannelOpen();
 
@@ -32,7 +32,7 @@ class ChannelOpenOk implements Message {
   final int msgMethodId = 11;
 
   // Message arguments
-  String reserved_1;
+  String? reserved_1;
 
   ChannelOpenOk.fromStream(TypeDecoder decoder) {
     reserved_1 = decoder.readLongString();
@@ -47,7 +47,7 @@ class ChannelFlow implements Message {
   final int msgMethodId = 20;
 
   // Message arguments
-  bool active;
+  bool? active;
 
   ChannelFlow();
   ChannelFlow.fromStream(TypeDecoder decoder) {
@@ -69,7 +69,7 @@ class ChannelFlowOk implements Message {
   final int msgMethodId = 21;
 
   // Message arguments
-  bool active;
+  bool? active;
 
   ChannelFlowOk();
   ChannelFlowOk.fromStream(TypeDecoder decoder) {
@@ -91,10 +91,10 @@ class ChannelClose implements Message {
   final int msgMethodId = 40;
 
   // Message arguments
-  int replyCode;
-  String replyText;
-  int classId;
-  int methodId;
+  int? replyCode;
+  String? replyText;
+  late int classId;
+  late int methodId;
 
   ChannelClose();
   ChannelClose.fromStream(TypeDecoder decoder) {
@@ -107,7 +107,7 @@ class ChannelClose implements Message {
     encoder
       ..writeUInt16(msgClassId)
       ..writeUInt16(msgMethodId)
-      ..writeUInt16(replyCode)
+      ..writeUInt16(replyCode!)
       ..writeShortString(replyText)
       ..writeUInt16(classId)
       ..writeUInt16(methodId);

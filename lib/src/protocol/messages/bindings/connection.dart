@@ -14,11 +14,11 @@ class ConnectionStart implements Message {
   final int msgMethodId = 10;
 
   // Message arguments
-  int versionMajor;
-  int versionMinor;
-  Map<String, Object> serverProperties;
-  String mechanisms;
-  String locales;
+  int? versionMajor;
+  int? versionMinor;
+  Map<String, Object?>? serverProperties;
+  String? mechanisms;
+  String? locales;
 
   ConnectionStart.fromStream(TypeDecoder decoder) {
     versionMajor = decoder.readUInt8();
@@ -37,10 +37,10 @@ class ConnectionStartOk implements Message {
   final int msgMethodId = 11;
 
   // Message arguments
-  Map<String, Object> clientProperties;
-  String mechanism;
-  String response;
-  String locale;
+  Map<String, Object>? clientProperties;
+  String? mechanism;
+  String? response;
+  String? locale;
 
   ConnectionStartOk();
 
@@ -61,7 +61,7 @@ class ConnectionSecure implements Message {
   final int msgMethodId = 20;
 
   // Message arguments
-  String challenge;
+  String? challenge;
 
   ConnectionSecure.fromStream(TypeDecoder decoder) {
     challenge = decoder.readLongString();
@@ -76,7 +76,7 @@ class ConnectionSecureOk implements Message {
   final int msgMethodId = 21;
 
   // Message arguments
-  String response;
+  String? response;
 
   ConnectionSecureOk();
 
@@ -94,9 +94,9 @@ class ConnectionTune implements Message {
   final int msgMethodId = 30;
 
   // Message arguments
-  int channelMax;
-  int frameMax;
-  int heartbeat;
+  int? channelMax;
+  int? frameMax;
+  int? heartbeat;
 
   ConnectionTune.fromStream(TypeDecoder decoder) {
     channelMax = decoder.readUInt16();
@@ -113,9 +113,9 @@ class ConnectionTuneOk implements Message {
   final int msgMethodId = 31;
 
   // Message arguments
-  int channelMax;
-  int frameMax;
-  int heartbeat;
+  int? channelMax;
+  int? frameMax;
+  late int heartbeat;
 
   ConnectionTuneOk();
 
@@ -123,8 +123,8 @@ class ConnectionTuneOk implements Message {
     encoder
       ..writeUInt16(msgClassId)
       ..writeUInt16(msgMethodId)
-      ..writeUInt16(channelMax)
-      ..writeUInt32(frameMax)
+      ..writeUInt16(channelMax!)
+      ..writeUInt32(frameMax!)
       ..writeUInt16(heartbeat);
   }
 }
@@ -135,9 +135,9 @@ class ConnectionOpen implements Message {
   final int msgMethodId = 40;
 
   // Message arguments
-  String virtualHost;
-  String reserved_1;
-  bool reserved_2;
+  String? virtualHost;
+  String? reserved_1;
+  bool? reserved_2;
 
   ConnectionOpen();
 
@@ -157,7 +157,7 @@ class ConnectionOpenOk implements Message {
   final int msgMethodId = 41;
 
   // Message arguments
-  String reserved_1;
+  String? reserved_1;
 
   ConnectionOpenOk.fromStream(TypeDecoder decoder) {
     reserved_1 = decoder.readShortString();
@@ -172,10 +172,10 @@ class ConnectionClose implements Message {
   final int msgMethodId = 50;
 
   // Message arguments
-  int replyCode;
-  String replyText;
-  int classId;
-  int methodId;
+  int? replyCode;
+  String? replyText;
+  late int classId;
+  late int methodId;
 
   ConnectionClose();
   ConnectionClose.fromStream(TypeDecoder decoder) {
@@ -188,7 +188,7 @@ class ConnectionClose implements Message {
     encoder
       ..writeUInt16(msgClassId)
       ..writeUInt16(msgMethodId)
-      ..writeUInt16(replyCode)
+      ..writeUInt16(replyCode!)
       ..writeShortString(replyText)
       ..writeUInt16(classId)
       ..writeUInt16(methodId);

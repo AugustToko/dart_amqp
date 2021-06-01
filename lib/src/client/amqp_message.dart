@@ -2,30 +2,30 @@ part of dart_amqp.client;
 
 abstract class AmqpMessage {
   /// Get the payload as a [Uint8List]
-  Uint8List get payload;
+  Uint8List? get payload;
 
   /// Get the payload as a [String]. This method will pass
   /// the message [payload] through UTF8.decode and return
   /// the decoded string.
-  String get payloadAsString;
+  String? get payloadAsString;
 
   /// Get the payload as a [Map]. This method will pass the
   /// message [payload] through a JSON decoded and return the
   /// decoded JSON data as a [Map].
-  Map get payloadAsJson;
+  Map? get payloadAsJson;
 
   /// Get the name of the exchange where this message arrived from. The
   /// method will return null if the message did not arrive through an
   /// exchange (e.g. posted directly to a queue).
-  String get exchangeName;
+  String? get exchangeName;
 
   /// Get the routing key for this message. The
   /// method will return null if the message did not arrive through an
   /// exchange (e.g. posted directly to a queue).
-  String get routingKey;
+  String? get routingKey;
 
   /// Get the [properties] that were included with the message metadata
-  MessageProperties get properties;
+  MessageProperties? get properties;
 
   /// Acknowledge this message.
   void ack();
@@ -44,7 +44,7 @@ abstract class AmqpMessage {
   /// if it cannot route them. If the flag is set to false, the server will queue the message even though
   /// there is no guarantee that it will ever be consumed.
   void reply(Object responseMessage,
-      {MessageProperties properties,
+      {MessageProperties? properties,
       bool mandatory = false,
       bool immediate = false});
 

@@ -28,7 +28,7 @@ class ErrorType extends Enum<int> {
 
   String toString() => "${value}";
 
-  static ErrorType valueOf(int value) {
+  static ErrorType valueOf(int? value) {
     if (value == SUCCESS.value) return SUCCESS;
     if (value == CONTENT_TOO_LARGE.value) return CONTENT_TOO_LARGE;
     if (value == NO_CONSUMERS.value) return NO_CONSUMERS;
@@ -50,7 +50,7 @@ class ErrorType extends Enum<int> {
     throw ArgumentError("Invalid error type value $value");
   }
 
-  static String nameOf(ErrorType value) {
+  static String? nameOf(ErrorType value) {
     if (value == SUCCESS) return "SUCCESS";
     if (value == CONTENT_TOO_LARGE) return "CONTENT_TOO_LARGE";
     if (value == NO_CONSUMERS) return "NO_CONSUMERS";

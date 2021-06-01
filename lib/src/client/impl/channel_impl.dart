@@ -5,21 +5,21 @@ class _ChannelImpl implements Channel {
   final int channelId;
 
   _ClientImpl _client;
-  FrameWriter _frameWriter;
-  Completer<Channel> _channelOpened;
-  Completer<Channel> _channelClosed;
-  ListQueue<Completer> _pendingOperations;
-  ListQueue<Object> _pendingOperationPayloads;
-  Map<String, _ConsumerImpl> _consumers;
-  Message _lastHandshakeMessage;
-  Exception _channelCloseException;
+  late FrameWriter _frameWriter;
+  Completer<Channel>? _channelOpened;
+  Completer<Channel>? _channelClosed;
+  late ListQueue<Completer?> _pendingOperations;
+  late ListQueue<Object> _pendingOperationPayloads;
+  late Map<String?, _ConsumerImpl> _consumers;
+  Message? _lastHandshakeMessage;
+  Exception? _channelCloseException;
   final _basicReturnStream = StreamController<BasicReturnMessage>.broadcast();
 
   _ChannelImpl(this.channelId, this._client) {
     _frameWriter = FrameWriter(_client.tuningSettings);
-    _pendingOperations = ListQueue<Completer>();
+    _pendingOperations = ListQueue<Completer?>();
     _pendingOperationPayloads = ListQueue<Object>();
-    _consumers = Map<String, _ConsumerImpl>();
+    _consumers = Map<String?, _ConsumerImpl>();
 
     // If we are opening a user channel signal to the server; otherwise perform connection handshake
     if (channelId > 0) {
@@ -38,10 +38,10 @@ class _ChannelImpl implements Channel {
     // Transmit handshake
     _frameWriter
       ..writeProtocolHeader(
-          _client.settings.amqpProtocolVersion,
-          _client.settings.amqpMajorVersion,
-          _client.settings.amqpMinorVersion,
-          _client.settings.amqpRevision)
+          _client.settings!.amqpProtocolVersion,
+          _client.settings!.amqpMajorVersion,
+          _client.settings!.amqpMinorVersion,
+          _client.settings!.amqpRevision)
       ..pipe(_client._socket);
   }
 
@@ -56,14 +56,14 @@ class _ChannelImpl implements Channel {
   ///
   /// A [StateError] will be thrown when trying to write a message to a closed channel
   void writeMessage(Message message,
-      {MessageProperties properties,
-      Object payloadContent,
-      Completer completer,
-      Object futurePayload}) {
+      {MessageProperties? properties,
+      Object? payloadContent,
+      Completer? completer,
+      Object? futurePayload}) {
     if (_channelClosed != null && (_channelClosed != completer)) {
-      throw _channelCloseException == null
+      throw (_channelCloseException == null
           ? StateError("Channel has been closed")
-          : _channelCloseException;
+          : _channelCloseException)!;
     }
 
     // If an op completer is specified add it to the queue
@@ -93,10 +93,10 @@ class _ChannelImpl implements Channel {
             (serverMessage.message as ConnectionStart);
 
         // Check if the currently supplied authentication provider is supported by the server.
-        if (!serverResponse.mechanisms
-            .contains(_client.settings.authProvider.saslType)) {
+        if (!serverResponse.mechanisms!
+            .contains(_client.settings!.authProvider.saslType)) {
           _client._handleException(FatalException(
-              "Selected authentication provider '${_client.settings.authProvider.saslType}' is unsupported by the server (server supports: ${serverResponse.mechanisms})"));
+              "Selected authentication provider '${_client.settings!.authProvider.saslType}' is unsupported by the server (server supports: ${serverResponse.mechanisms})"));
           return;
         }
 
@@ -107,8 +107,8 @@ class _ChannelImpl implements Channel {
             "platform": "Dart/${Platform.operatingSystem}"
           }
           ..locale = 'en_US'
-          ..mechanism = _client.settings.authProvider.saslType
-          ..response = _client.settings.authProvider.answerChallenge(null);
+          ..mechanism = _client.settings!.authProvider.saslType
+          ..response = _client.settings!.authProvider.answerChallenge(null);
 
         // Transmit handshake response
         _lastHandshakeMessage = clientResponse;
@@ -119,7 +119,7 @@ class _ChannelImpl implements Channel {
             serverMessage.message as ConnectionSecure;
 
         ConnectionSecureOk clientResponse = ConnectionSecureOk()
-          ..response = _client.settings.authProvider
+          ..response = _client.settings!.authProvider
               .answerChallenge(serverResponse.challenge);
 
         // Transmit handshake response
@@ -129,18 +129,20 @@ class _ChannelImpl implements Channel {
       case ConnectionTune:
         ConnectionTune serverResponse = serverMessage.message as ConnectionTune;
 
+        if (_client.tuningSettings == null) throw Exception();
+
         // Update tuning settings unless our client forces a specific value
-        _client.tuningSettings
+        _client.tuningSettings!
           ..maxFrameSize = serverResponse.frameMax
-          ..maxChannels = _client.tuningSettings.maxChannels > 0
-              ? _client.tuningSettings.maxChannels
+          ..maxChannels = _client.tuningSettings!.maxChannels! > 0
+              ? _client.tuningSettings!.maxChannels
               : serverResponse.channelMax
           ..heartbeatPeriod = Duration.zero;
 
         // Respond with the mirrored tuning settings
         ConnectionTuneOk clientResponse = ConnectionTuneOk()
           ..frameMax = serverResponse.frameMax
-          ..channelMax = _client.tuningSettings.maxChannels
+          ..channelMax = _client.tuningSettings!.maxChannels
           ..heartbeat = 0;
 
         _lastHandshakeMessage = clientResponse;
@@ -149,7 +151,7 @@ class _ChannelImpl implements Channel {
         // Also respond with a connection open request. The _channelOpened future has already been
         // pushed to the pending operations stack in the constructor so we do not need to do it here
         ConnectionOpen openRequest = ConnectionOpen()
-          ..virtualHost = _client.settings.virtualHost;
+          ..virtualHost = _client.settings!.virtualHost;
         _lastHandshakeMessage = clientResponse;
         writeMessage(openRequest);
 
@@ -171,13 +173,13 @@ class _ChannelImpl implements Channel {
   ///
   /// After closing the channel any attempt to send a message over it will cause a [StateError]
   Future<Channel> _close(
-      {ErrorType replyCode,
-      String replyText,
-      int classId = 0,
+      {ErrorType? replyCode,
+      String? replyText,
+      int? classId = 0,
       int methodId = 0}) {
     // Already closing / closed
     if (_channelClosed != null) {
-      return _channelClosed.future;
+      return _channelClosed!.future;
     }
 
     _channelClosed = Completer<Channel>();
@@ -190,28 +192,28 @@ class _ChannelImpl implements Channel {
 
     if (channelId == 0) {
       closeRequest = ConnectionClose()
-        ..replyCode = replyCode.value
+        ..replyCode = replyCode!.value
         ..replyText = replyText
         ..classId = classId
         ..methodId = methodId;
     } else {
       closeRequest = ChannelClose()
-        ..replyCode = replyCode.value
+        ..replyCode = replyCode!.value
         ..replyText = replyText
         ..classId = classId
         ..methodId = methodId;
     }
     writeMessage(closeRequest, completer: _channelClosed, futurePayload: this);
-    _channelClosed.future
+    _channelClosed!.future
         .then((_) => _basicReturnStream.close())
         .then((_) => _client._removeChannel(channelId));
-    return _channelClosed.future;
+    return _channelClosed!.future;
   }
 
   /// Process an incoming [serverFrame] sent to this channel
-  void handleMessage(DecodedMessage serverMessage) {
+  void handleMessage(DecodedMessage? serverMessage) {
     if (_client.handshaking) {
-      _processHandshake(serverMessage);
+      _processHandshake(serverMessage!);
       return;
     }
 
@@ -220,7 +222,7 @@ class _ChannelImpl implements Channel {
       return;
     }
 
-    switch (serverMessage.message.runtimeType) {
+    switch (serverMessage!.message.runtimeType) {
       // Connection
       case ConnectionCloseOk:
         _completeOperation(serverMessage.message);
@@ -276,7 +278,7 @@ class _ChannelImpl implements Channel {
         _completeOperation(serverResponse);
         break;
       case BasicReturn:
-        BasicReturn serverResponse = (serverMessage.message as BasicReturn);
+        BasicReturn? serverResponse = (serverMessage.message as BasicReturn?);
         if (_basicReturnStream != null &&
             _basicReturnStream.hasListener &&
             !_basicReturnStream.isClosed) {
@@ -286,14 +288,14 @@ class _ChannelImpl implements Channel {
         break;
       case BasicDeliver:
         BasicDeliver serverResponse = (serverMessage.message as BasicDeliver);
-        _ConsumerImpl target = _consumers[serverResponse.consumerTag];
+        _ConsumerImpl? target = _consumers[serverResponse.consumerTag];
 
         // no cosumer with tag
         if (target == null) {
           break;
         }
 
-        target.onMessage(serverMessage);
+        target.onMessage(serverMessage as DecodedMessageImpl);
         break;
       // Exchange
       case ExchangeDeclareOk:
@@ -307,21 +309,21 @@ class _ChannelImpl implements Channel {
 
   /// Complete a pending operation with [result] after receiving [serverResponse]
   /// from the socket
-  void _completeOperation(Message serverResponse) {
+  void _completeOperation(Message? serverResponse) {
     if (_pendingOperations.isEmpty) {
       return;
     }
 
     // Complete the first pending operation in the queue with  the first future payload
     _pendingOperations
-        .removeFirst()
+        .removeFirst()!
         .complete(_pendingOperationPayloads.removeFirst());
   }
 
   /// Complete a pending operation with [error] after receiving [serverResponse]
   /// from the socket
-  void _completeOperationWithError(Message serverResponse) {
-    Exception ex;
+  void _completeOperationWithError(Message? serverResponse) {
+    late Exception ex;
     switch (serverResponse.runtimeType) {
       case ConnectionClose:
         ConnectionClose closeResponse = serverResponse as ConnectionClose;
@@ -333,7 +335,7 @@ class _ChannelImpl implements Channel {
 
         // Complete the first pending operation in the queue with  the first future payload
         _pendingOperationPayloads.removeFirst();
-        _pendingOperations.removeFirst().completeError(ex);
+        _pendingOperations.removeFirst()!.completeError(ex);
 
         break;
       case ChannelClose:
@@ -355,8 +357,8 @@ class _ChannelImpl implements Channel {
 
         // Mark the channel as closed
         _channelClosed ??= Completer();
-        if (!_channelClosed.isCompleted) {
-          _channelClosed.complete();
+        if (!_channelClosed!.isCompleted) {
+          _channelClosed!.complete();
         }
         _channelCloseException = ex;
 
@@ -366,14 +368,14 @@ class _ChannelImpl implements Channel {
     // Complete any first pending operation in the queue with the error
     while (!_pendingOperations.isEmpty) {
       _pendingOperationPayloads.removeFirst();
-      _pendingOperations.removeFirst().completeError(ex);
+      _pendingOperations.removeFirst()!.completeError(ex);
     }
   }
 
   /// Abort any pending operations with [exception] and mark the channel as closed
   void handleException(exception) {
     // Ignore exception if we are closed
-    if (_channelClosed != null && _channelClosed.isCompleted) {
+    if (_channelClosed != null && _channelClosed!.isCompleted) {
       return;
     }
 
@@ -400,8 +402,8 @@ class _ChannelImpl implements Channel {
     // Mark the channel as closed if we need to
     if (flagChannelAsClosed) {
       _channelClosed ??= Completer();
-      if (!_channelClosed.isCompleted) {
-        _channelClosed.complete();
+      if (!_channelClosed!.isCompleted) {
+        _channelClosed!.complete();
       }
     }
 
@@ -410,8 +412,8 @@ class _ChannelImpl implements Channel {
     }
 
     // Abort any pending operations unless we are currently opening the channel
-    _pendingOperations.forEach((Completer completer) {
-      if (!completer.isCompleted) {
+    _pendingOperations.forEach((Completer? completer) {
+      if (!completer!.isCompleted) {
         completer.completeError(exception);
       }
     });
@@ -425,13 +427,13 @@ class _ChannelImpl implements Channel {
   Future<Channel> close() =>
       _close(replyCode: ErrorType.SUCCESS, replyText: "Normal shutdown");
 
-  Future<Queue> queue(String name,
+  Future<Queue> queue(String? name,
       {bool passive = false,
       bool durable = false,
       bool exclusive = false,
       bool autoDelete = false,
       bool noWait = false,
-      Map<String, Object> arguments}) {
+      Map<String, Object>? arguments}) {
     QueueDeclare queueRequest = QueueDeclare()
       ..reserved_1 = 0
       ..queue = name
@@ -449,7 +451,7 @@ class _ChannelImpl implements Channel {
   }
 
   Future<Queue> privateQueue(
-      {bool noWait = false, Map<String, Object> arguments}) {
+      {bool noWait = false, Map<String, Object>? arguments}) {
     QueueDeclare queueRequest = QueueDeclare()
       ..reserved_1 = 0
       ..queue = null
@@ -466,11 +468,11 @@ class _ChannelImpl implements Channel {
     return opCompleter.future;
   }
 
-  Future<Exchange> exchange(String name, ExchangeType type,
+  Future<Exchange> exchange(String? name, ExchangeType? type,
       {bool passive = false,
       bool durable = false,
       bool noWait = false,
-      Map<String, Object> arguments}) {
+      Map<String, Object>? arguments}) {
     if (name == null || name.isEmpty) {
       throw ArgumentError("The name of the exchange cannot be empty");
     }
@@ -496,13 +498,13 @@ class _ChannelImpl implements Channel {
 
   StreamSubscription<BasicReturnMessage> basicReturnListener(
           void onData(BasicReturnMessage message),
-          {Function onError,
-          void onDone(),
-          bool cancelOnError}) =>
+          {Function? onError,
+          void onDone()?,
+          bool? cancelOnError}) =>
       _basicReturnStream.stream.listen(onData,
           onError: onError, onDone: onDone, cancelOnError: cancelOnError);
 
-  Future<Channel> qos(int prefetchSize, int prefetchCount,
+  Future<Channel> qos(int? prefetchSize, int prefetchCount,
       {bool global = true}) {
     prefetchSize ??= 0;
     prefetchCount ??= 0;
@@ -516,7 +518,7 @@ class _ChannelImpl implements Channel {
     return opCompleter.future;
   }
 
-  void ack(int deliveryTag, {bool multiple = false}) {
+  void ack(int? deliveryTag, {bool multiple = false}) {
     BasicAck ackRequest = BasicAck()
       ..deliveryTag = deliveryTag
       ..multiple = multiple;

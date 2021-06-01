@@ -1,12 +1,12 @@
 part of dart_amqp.client;
 
 class _ConsumerImpl implements Consumer {
-  String _tag;
+  String? _tag;
   final _controller = StreamController<AmqpMessage>();
   final _ChannelImpl channel;
   final _QueueImpl queue;
 
-  String get tag => _tag;
+  String? get tag => _tag;
 
   _ConsumerImpl(
     this.channel,
@@ -15,7 +15,7 @@ class _ConsumerImpl implements Consumer {
   );
 
   StreamSubscription<AmqpMessage> listen(void onData(AmqpMessage event),
-          {Function onError, void onDone(), bool cancelOnError}) =>
+          {Function? onError, void onDone()?, bool? cancelOnError}) =>
       _controller.stream.listen(onData,
           onError: onError, onDone: onDone, cancelOnError: cancelOnError);
 

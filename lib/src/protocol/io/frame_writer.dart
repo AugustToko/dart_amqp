@@ -9,7 +9,7 @@ class FrameWriter {
   final TypeEncoder _bufferEncoder;
   final TypeEncoder _outputEncoder;
 
-  final TuningSettings _tuningSettings;
+  final TuningSettings? _tuningSettings;
 
   FrameWriter(this._tuningSettings)
       : _frameHeader = FrameHeader(),
@@ -18,7 +18,7 @@ class FrameWriter {
         _outputEncoder = TypeEncoder();
 
   void writeMessage(int channelId, Message message,
-      {MessageProperties properties, Object payloadContent}) {
+      {MessageProperties? properties, Object? payloadContent}) {
     // Make sure our buffer contains no stale data from previous messages
     _outputEncoder.writer.clear();
 
@@ -85,11 +85,11 @@ class FrameWriter {
       int contentLen = serializedContent.lengthInBytes;
       for (int offset = 0;
           offset < contentLen;
-          offset += _tuningSettings.maxFrameSize) {
+          offset += _tuningSettings!.maxFrameSize!) {
         // Setup  and encode the frame header
         _frameHeader
           ..type = FrameType.BODY
-          ..size = math.min(_tuningSettings.maxFrameSize, contentLen - offset)
+          ..size = math.min(_tuningSettings!.maxFrameSize!, contentLen - offset)
           ..serialize(_outputEncoder);
 
         // Encode the payload for the frame
@@ -117,7 +117,7 @@ class FrameWriter {
   }
 
   /// Pipe encoded frame data to [sink]
-  void pipe(Sink sink) {
+  void pipe(Sink? sink) {
     _outputEncoder.writer.pipe(sink);
   }
 

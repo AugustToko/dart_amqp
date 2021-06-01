@@ -23,7 +23,7 @@ void initLogger() {
 }
 
 class MockServer {
-  ServerSocket _server;
+  ServerSocket? _server;
   List<Socket> clients = [];
   List replayList = [];
   Duration responseDelay = const Duration(seconds: 0);
@@ -35,14 +35,14 @@ class MockServer {
 
     if (_server != null) {
       mockLogger
-          .info("Shutting down server [${_server.address}:${_server.port}]");
+          .info("Shutting down server [${_server!.address}:${_server!.port}]");
 
       List<Future> cleanupFutures = []
         ..addAll(clients.map((Socket client) {
           client.destroy();
           return Future.value(true);
         }))
-        ..add(_server.close().then((_) =>
+        ..add(_server!.close().then((_) =>
             Future.delayed(const Duration(milliseconds: 20), () => true)));
 
       clients.clear();
@@ -68,7 +68,7 @@ class MockServer {
 
     _server = await ServerSocket.bind(host, port);
     mockLogger.info("[$host:$port] Listening for incoming connections");
-    _server.listen(_handleConnection);
+    _server!.listen(_handleConnection);
     ;
   }
 
@@ -120,13 +120,13 @@ class _RotEncoder extends Converter<Map, Uint8List> {
   }
 }
 
-class _RotDecoder extends Converter<Uint8List, Map> {
+class _RotDecoder extends Converter<Uint8List, Map?> {
   final bool throwOnConvert;
   final int _key;
 
   const _RotDecoder(this._key, this.throwOnConvert);
 
-  Map convert(Uint8List input) {
+  Map? convert(Uint8List input) {
     if (throwOnConvert) {
       throw Exception("Something has gone awfully wrong...");
     }
@@ -140,13 +140,13 @@ class _RotDecoder extends Converter<Uint8List, Map> {
   }
 }
 
-class RotCodec extends Codec<Map, Uint8List> {
+class RotCodec extends Codec<Map?, Uint8List> {
   bool throwOnEncode;
   bool throwOnDecode;
 
   // For our test apply ROT-13 to compress/decompress
-  _RotEncoder _encoder;
-  _RotDecoder _decoder;
+  late _RotEncoder _encoder;
+  late _RotDecoder _decoder;
 
   RotCodec({this.throwOnEncode = false, this.throwOnDecode = false}) {
     _encoder = _RotEncoder(13, throwOnEncode);
@@ -157,7 +157,7 @@ class RotCodec extends Codec<Map, Uint8List> {
     return _encoder;
   }
 
-  Converter<Uint8List, Map> get decoder {
+  Converter<Uint8List, Map?> get decoder {
     return _decoder;
   }
 }

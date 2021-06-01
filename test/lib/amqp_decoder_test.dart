@@ -18,18 +18,18 @@ class ConnectionStartMock extends Mock implements ConnectionStart {
   final int msgMethodId = 10;
 
   // Message arguments
-  int versionMajor;
-  int versionMinor;
-  Map<String, Object> serverProperties;
-  String mechanisms;
-  String locales;
+  int? versionMajor;
+  int? versionMinor;
+  Map<String, Object?>? serverProperties;
+  String? mechanisms;
+  String? locales;
 
   void serialize(TypeEncoder encoder) {
     encoder
       ..writeUInt16(msgClassId)
       ..writeUInt16(msgMethodId)
-      ..writeUInt8(versionMajor)
-      ..writeUInt8(versionMinor)
+      ..writeUInt8(versionMajor!)
+      ..writeUInt8(versionMinor!)
       ..writeFieldTable(serverProperties)
       ..writeLongString(mechanisms)
       ..writeLongString(locales);
@@ -42,17 +42,17 @@ class ConnectionTuneMock extends Mock implements ConnectionTune {
   final int msgMethodId = 30;
 
   // Message arguments
-  int channelMax;
-  int frameMax;
-  int heartbeat;
+  int? channelMax;
+  int? frameMax;
+  int? heartbeat;
 
   void serialize(TypeEncoder encoder) {
     encoder
       ..writeUInt16(msgClassId)
       ..writeUInt16(msgMethodId)
-      ..writeUInt16(channelMax)
-      ..writeUInt32(frameMax)
-      ..writeUInt16(heartbeat);
+      ..writeUInt16(channelMax!)
+      ..writeUInt32(frameMax!)
+      ..writeUInt16(heartbeat!);
   }
 }
 
@@ -60,7 +60,7 @@ class ConnectionOpenOkMock extends Mock implements ConnectionOpenOk {
   final bool msgHasContent = false;
   final int msgClassId = 10;
   final int msgMethodId = 41;
-  String reserved_1;
+  String? reserved_1;
 
   void serialize(TypeEncoder encoder) {
     encoder
@@ -76,18 +76,18 @@ class BasicDeliverMock extends Mock implements BasicDeliver {
   final int msgMethodId = 60;
 
   // Message arguments
-  String consumerTag;
-  int deliveryTag;
-  bool redelivered;
-  String exchange;
-  String routingKey;
+  String? consumerTag;
+  int? deliveryTag;
+  bool? redelivered;
+  String? exchange;
+  String? routingKey;
 
   void serialize(TypeEncoder encoder) {
     encoder
       ..writeUInt16(msgClassId)
       ..writeUInt16(msgMethodId)
       ..writeShortString(consumerTag)
-      ..writeUInt64(deliveryTag)
+      ..writeUInt64(deliveryTag!)
       ..writeUInt8(0)
       ..writeShortString(exchange)
       ..writeShortString(routingKey);
@@ -105,8 +105,8 @@ void generateHandshakeMessages(
         ..serverProperties = {"product": "foo"}
         ..mechanisms = "PLAIN"
         ..locales = "en");
-  server.replayList.add(frameWriter.outputEncoder.writer.joinChunks());
-  frameWriter.outputEncoder.writer.clear();
+  server.replayList.add(frameWriter.outputEncoder.writer!.joinChunks());
+  frameWriter.outputEncoder.writer!.clear();
 
   // Connection tune
   frameWriter.writeMessage(
@@ -115,13 +115,13 @@ void generateHandshakeMessages(
         ..channelMax = 0
         ..frameMax = (TuningSettings()).maxFrameSize
         ..heartbeat = 0);
-  server.replayList.add(frameWriter.outputEncoder.writer.joinChunks());
-  frameWriter.outputEncoder.writer.clear();
+  server.replayList.add(frameWriter.outputEncoder.writer!.joinChunks());
+  frameWriter.outputEncoder.writer!.clear();
 
   // Connection open ok
   frameWriter.writeMessage(0, ConnectionOpenOkMock());
-  server.replayList.add(frameWriter.outputEncoder.writer.joinChunks());
-  frameWriter.outputEncoder.writer.clear();
+  server.replayList.add(frameWriter.outputEncoder.writer!.joinChunks());
+  frameWriter.outputEncoder.writer!.clear();
 }
 
 main({bool enableLogger = true}) {
@@ -130,10 +130,10 @@ main({bool enableLogger = true}) {
   }
 
   group("AMQP decoder:", () {
-    StreamController<RawFrame> controller;
-    Stream<DecodedMessage> rawStream;
+    late StreamController<RawFrame> controller;
+    late Stream<DecodedMessage?> rawStream;
     RawFrame rawFrame;
-    FrameWriter frameWriter;
+    late FrameWriter frameWriter;
     TuningSettings tuningSettings;
 
     setUp(() {
@@ -148,7 +148,7 @@ main({bool enableLogger = true}) {
         "HEADER frame with empty payload size should emit message without waiting for BODY frames",
         () {
       rawStream.listen(expectAsync1((data) {
-        expect(data.payload, isNull);
+        expect(data!.payload, isNull);
       }));
 
       BasicDeliverMock()
@@ -161,10 +161,10 @@ main({bool enableLogger = true}) {
       FrameHeader header = FrameHeader();
       header.channel = 1;
       header.type = FrameType.METHOD;
-      header.size = frameWriter.outputEncoder.writer.lengthInBytes;
+      header.size = frameWriter.outputEncoder.writer!.lengthInBytes;
 
-      Uint8List serializedData = frameWriter.outputEncoder.writer.joinChunks();
-      frameWriter.outputEncoder.writer.clear();
+      Uint8List serializedData = frameWriter.outputEncoder.writer!.joinChunks();
+      frameWriter.outputEncoder.writer!.clear();
       rawFrame = RawFrame(
           header,
           ByteData.view(
@@ -180,11 +180,11 @@ main({bool enableLogger = true}) {
       header = FrameHeader();
       header.channel = 1;
       header.type = FrameType.HEADER;
-      header.size = frameWriter.outputEncoder.writer.lengthInBytes;
+      header.size = frameWriter.outputEncoder.writer!.lengthInBytes;
       ;
 
-      serializedData = frameWriter.outputEncoder.writer.joinChunks();
-      frameWriter.outputEncoder.writer.clear();
+      serializedData = frameWriter.outputEncoder.writer!.joinChunks();
+      frameWriter.outputEncoder.writer!.clear();
       rawFrame = RawFrame(
           header,
           ByteData.view(
@@ -197,7 +197,7 @@ main({bool enableLogger = true}) {
       test("METHOD frame while still processing previous METHOD frame", () {
         rawStream.listen((data) {
           fail("Expected exception to be thrown");
-        }, onError: expectAsync1((error) {
+        }, onError: expectAsync1((dynamic error) {
           expect(error, const TypeMatcher<ConnectionException>());
           expect(
               error.toString(),
@@ -215,11 +215,11 @@ main({bool enableLogger = true}) {
         FrameHeader header = FrameHeader();
         header.channel = 1;
         header.type = FrameType.METHOD;
-        header.size = frameWriter.outputEncoder.writer.lengthInBytes;
+        header.size = frameWriter.outputEncoder.writer!.lengthInBytes;
 
         Uint8List serializedData =
-            frameWriter.outputEncoder.writer.joinChunks();
-        frameWriter.outputEncoder.writer.clear();
+            frameWriter.outputEncoder.writer!.joinChunks();
+        frameWriter.outputEncoder.writer!.clear();
         rawFrame = RawFrame(
             header,
             ByteData.view(
@@ -233,7 +233,7 @@ main({bool enableLogger = true}) {
       test("HEADER frame without a previous METHOD frame", () {
         rawStream.listen((data) {
           fail("Expected exception to be thrown");
-        }, onError: expectAsync1((error) {
+        }, onError: expectAsync1((dynamic error) {
           expect(error, const TypeMatcher<ConnectionException>());
           expect(
               error.toString(),
@@ -249,11 +249,11 @@ main({bool enableLogger = true}) {
         FrameHeader header = FrameHeader();
         header.channel = 1;
         header.type = FrameType.HEADER;
-        header.size = frameWriter.outputEncoder.writer.lengthInBytes;
+        header.size = frameWriter.outputEncoder.writer!.lengthInBytes;
 
         Uint8List serializedData =
-            frameWriter.outputEncoder.writer.joinChunks();
-        frameWriter.outputEncoder.writer.clear();
+            frameWriter.outputEncoder.writer!.joinChunks();
+        frameWriter.outputEncoder.writer!.clear();
         rawFrame = RawFrame(
             header,
             ByteData.view(
@@ -265,7 +265,7 @@ main({bool enableLogger = true}) {
       test("HEADER frame not matching previous METHOD frame class", () {
         rawStream.listen((data) {
           fail("Expected exception to be thrown");
-        }, onError: expectAsync1((error) {
+        }, onError: expectAsync1((dynamic error) {
           expect(error, const TypeMatcher<ConnectionException>());
           expect(
               error.toString(),
@@ -283,11 +283,11 @@ main({bool enableLogger = true}) {
         FrameHeader header = FrameHeader();
         header.channel = 1;
         header.type = FrameType.METHOD;
-        header.size = frameWriter.outputEncoder.writer.lengthInBytes;
+        header.size = frameWriter.outputEncoder.writer!.lengthInBytes;
 
         Uint8List serializedData =
-            frameWriter.outputEncoder.writer.joinChunks();
-        frameWriter.outputEncoder.writer.clear();
+            frameWriter.outputEncoder.writer!.joinChunks();
+        frameWriter.outputEncoder.writer!.clear();
         rawFrame = RawFrame(
             header,
             ByteData.view(
@@ -303,10 +303,10 @@ main({bool enableLogger = true}) {
         header = FrameHeader();
         header.channel = 1;
         header.type = FrameType.HEADER;
-        header.size = frameWriter.outputEncoder.writer.lengthInBytes;
+        header.size = frameWriter.outputEncoder.writer!.lengthInBytes;
 
-        serializedData = frameWriter.outputEncoder.writer.joinChunks();
-        frameWriter.outputEncoder.writer.clear();
+        serializedData = frameWriter.outputEncoder.writer!.joinChunks();
+        frameWriter.outputEncoder.writer!.clear();
         rawFrame = RawFrame(
             header,
             ByteData.view(
@@ -318,7 +318,7 @@ main({bool enableLogger = true}) {
       test("duplicate HEADER frame for incomplete METHOD frame", () {
         rawStream.listen((data) {
           fail("Expected exception to be thrown");
-        }, onError: expectAsync1((error) {
+        }, onError: expectAsync1((dynamic error) {
           expect(error, const TypeMatcher<ConnectionException>());
           expect(
               error.toString(),
@@ -336,11 +336,11 @@ main({bool enableLogger = true}) {
         FrameHeader header = FrameHeader();
         header.channel = 1;
         header.type = FrameType.METHOD;
-        header.size = frameWriter.outputEncoder.writer.lengthInBytes;
+        header.size = frameWriter.outputEncoder.writer!.lengthInBytes;
 
         Uint8List serializedData =
-            frameWriter.outputEncoder.writer.joinChunks();
-        frameWriter.outputEncoder.writer.clear();
+            frameWriter.outputEncoder.writer!.joinChunks();
+        frameWriter.outputEncoder.writer!.clear();
         rawFrame = RawFrame(
             header,
             ByteData.view(
@@ -356,10 +356,10 @@ main({bool enableLogger = true}) {
         header = FrameHeader();
         header.channel = 1;
         header.type = FrameType.HEADER;
-        header.size = frameWriter.outputEncoder.writer.lengthInBytes;
+        header.size = frameWriter.outputEncoder.writer!.lengthInBytes;
 
-        serializedData = frameWriter.outputEncoder.writer.joinChunks();
-        frameWriter.outputEncoder.writer.clear();
+        serializedData = frameWriter.outputEncoder.writer!.joinChunks();
+        frameWriter.outputEncoder.writer!.clear();
         rawFrame = RawFrame(
             header,
             ByteData.view(
@@ -373,7 +373,7 @@ main({bool enableLogger = true}) {
       test("BODY frame without matching METHOD frame", () {
         rawStream.listen((data) {
           fail("Expected exception to be thrown");
-        }, onError: expectAsync1((error) {
+        }, onError: expectAsync1((dynamic error) {
           expect(error, const TypeMatcher<ConnectionException>());
           expect(
               error.toString(),
@@ -393,7 +393,7 @@ main({bool enableLogger = true}) {
       test("BODY frame without HEADER frame", () {
         rawStream.listen((data) {
           fail("Expected exception to be thrown");
-        }, onError: expectAsync1((error) {
+        }, onError: expectAsync1((dynamic error) {
           expect(error, const TypeMatcher<ConnectionException>());
           expect(
               error.toString(),
@@ -411,11 +411,11 @@ main({bool enableLogger = true}) {
         FrameHeader header = FrameHeader();
         header.channel = 1;
         header.type = FrameType.METHOD;
-        header.size = frameWriter.outputEncoder.writer.lengthInBytes;
+        header.size = frameWriter.outputEncoder.writer!.lengthInBytes;
 
         Uint8List serializedData =
-            frameWriter.outputEncoder.writer.joinChunks();
-        frameWriter.outputEncoder.writer.clear();
+            frameWriter.outputEncoder.writer!.joinChunks();
+        frameWriter.outputEncoder.writer!.clear();
         rawFrame = RawFrame(
             header,
             ByteData.view(

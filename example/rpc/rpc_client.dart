@@ -7,8 +7,8 @@ class FibonacciRpcClient {
   final Completer connected = Completer();
   final Client client;
   final Map<String, Completer> _pendingOperations = Map<String, Completer>();
-  Queue _serverQueue;
-  String _replyQueueName;
+  late Queue _serverQueue;
+  String? _replyQueueName;
 
   FibonacciRpcClient() : client = Client() {
     _init();
@@ -27,13 +27,13 @@ class FibonacciRpcClient {
 
   void handleResponse(AmqpMessage message) {
     // Ignore if the correlation id is unknown
-    if (!_pendingOperations.containsKey(message.properties.corellationId)) {
+    if (!_pendingOperations.containsKey(message.properties!.corellationId)) {
       return;
     }
 
     _pendingOperations
-        .remove(message.properties.corellationId)
-        .complete(int.parse(message.payloadAsString));
+        .remove(message.properties!.corellationId)!
+        .complete(int.parse(message.payloadAsString!));
   }
 
   Future<int> call(int n) async {
@@ -67,7 +67,7 @@ class FibonacciRpcClient {
 main(List<String> args) async {
   FibonacciRpcClient client = FibonacciRpcClient();
 
-  int n = args.isEmpty ? 30 : num.parse(args[0]);
+  int n = args.isEmpty ? 30 : num.parse(args[0]) as int;
 
   // Make 10 parallel calls and get fib(1) to fib(10)
   int res = await client.call(n);

@@ -2,70 +2,70 @@ part of dart_amqp.protocol;
 
 class TypeDecoder {
   int _offset = 0;
-  ByteData _buffer;
+  ByteData? _buffer;
   final Endian endianess = Endian.big;
 
   TypeDecoder.fromBuffer(this._buffer);
 
   int readInt8() {
-    return _buffer.getInt8(_offset++);
+    return _buffer!.getInt8(_offset++);
   }
 
   int readUInt8() {
-    return _buffer.getUint8(_offset++);
+    return _buffer!.getUint8(_offset++);
   }
 
   int readUInt16() {
-    int val = _buffer.getUint16(_offset, endianess);
+    int val = _buffer!.getUint16(_offset, endianess);
     _offset += 2;
 
     return val;
   }
 
   int readInt16() {
-    int val = _buffer.getInt16(_offset, endianess);
+    int val = _buffer!.getInt16(_offset, endianess);
     _offset += 2;
 
     return val;
   }
 
   int readUInt32() {
-    int val = _buffer.getUint32(_offset, endianess);
+    int val = _buffer!.getUint32(_offset, endianess);
     _offset += 4;
 
     return val;
   }
 
   int readInt32() {
-    int val = _buffer.getInt32(_offset, endianess);
+    int val = _buffer!.getInt32(_offset, endianess);
     _offset += 4;
 
     return val;
   }
 
   int readUInt64() {
-    int val = _buffer.getUint64(_offset, endianess);
+    int val = _buffer!.getUint64(_offset, endianess);
     _offset += 8;
 
     return val;
   }
 
   int readInt64() {
-    int val = _buffer.getInt64(_offset, endianess);
+    int val = _buffer!.getInt64(_offset, endianess);
     _offset += 8;
 
     return val;
   }
 
   double readFloat() {
-    double val = _buffer.getFloat32(_offset, endianess);
+    double val = _buffer!.getFloat32(_offset, endianess);
     _offset += 4;
 
     return val;
   }
 
   double readDouble() {
-    double val = _buffer.getFloat64(_offset, endianess);
+    double val = _buffer!.getFloat64(_offset, endianess);
     _offset += 8;
 
     return val;
@@ -78,16 +78,16 @@ class TypeDecoder {
   String readShortString() {
     int len = readUInt8();
     _offset += len;
-    return utf8.decode(Uint8List.view(_buffer.buffer, _offset - len, len));
+    return utf8.decode(Uint8List.view(_buffer!.buffer, _offset - len, len));
   }
 
   String readLongString() {
     int len = readUInt32();
     _offset += len;
-    return utf8.decode(Uint8List.view(_buffer.buffer, _offset - len, len));
+    return utf8.decode(Uint8List.view(_buffer!.buffer, _offset - len, len));
   }
 
-  DateTime readTimestamp() {
+  DateTime? readTimestamp() {
     int value = readUInt64();
     return value > 0 ? DateTime.fromMillisecondsSinceEpoch(value * 1000) : null;
   }
@@ -101,18 +101,18 @@ class TypeDecoder {
     return items;
   }
 
-  Map<String, Object> readFieldTable(String fieldName) {
+  Map<String, Object?> readFieldTable(String fieldName) {
     int tableEndOffset = readInt32() + _offset;
-    Map<String, Object> items = HashMap<String, Object>();
+    Map<String, Object?> items = HashMap<String, Object?>();
     while (_offset < tableEndOffset) {
       items[readShortString()] = _readField(fieldName);
     }
     return items;
   }
 
-  Object _readField(String fieldName) {
+  Object? _readField(String fieldName) {
     int typeValue = readUInt8();
-    FieldType type;
+    FieldType? type;
     try {
       type = FieldType.valueOf(typeValue);
     } catch (e) {}

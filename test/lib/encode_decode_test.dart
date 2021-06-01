@@ -10,7 +10,7 @@ import "package:dart_amqp/src/protocol.dart";
 import "mocks/mocks.dart" as mock;
 
 TypeDecoder decoderFromEncoder(TypeEncoder encoder) {
-  Uint8List data = encoder.writer.joinChunks();
+  Uint8List data = encoder.writer!.joinChunks();
   return TypeDecoder.fromBuffer(
       ByteData.view(data.buffer, 0, data.lengthInBytes));
 }
@@ -21,7 +21,7 @@ main({bool enableLogger = true}) {
   }
 
   group("Encode/decode:", () {
-    TypeEncoder encoder;
+    late TypeEncoder encoder;
     TypeDecoder decoder;
 
     setUp(() {

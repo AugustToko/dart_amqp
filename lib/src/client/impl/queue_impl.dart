@@ -1,18 +1,18 @@
 part of dart_amqp.client;
 
 class _QueueImpl implements Queue {
-  String _name;
-  int _messageCount;
-  int _consumerCount;
+  String? _name;
+  int? _messageCount;
+  int? _consumerCount;
   final _ChannelImpl channel;
 
   _QueueImpl(this.channel, this._name);
 
-  String get name => _name;
+  String? get name => _name;
 
-  int get messageCount => _messageCount;
+  int? get messageCount => _messageCount;
 
-  int get consumerCount => _consumerCount;
+  int? get consumerCount => _consumerCount;
 
   Future<Queue> delete(
       {bool ifUnused = false, bool IfEmpty = false, bool noWait = false}) {
@@ -41,8 +41,8 @@ class _QueueImpl implements Queue {
     return completer.future;
   }
 
-  Future<Queue> bind(Exchange exchange, String routingKey,
-      {bool noWait, Map<String, Object> arguments}) {
+  Future<Queue> bind(Exchange? exchange, String routingKey,
+      {bool? noWait, Map<String, Object>? arguments}) {
     if (exchange == null) {
       throw ArgumentError("Exchange cannot be null");
     }
@@ -71,8 +71,8 @@ class _QueueImpl implements Queue {
     return completer.future;
   }
 
-  Future<Queue> unbind(Exchange exchange, String routingKey,
-      {bool noWait, Map<String, Object> arguments}) {
+  Future<Queue> unbind(Exchange? exchange, String routingKey,
+      {bool? noWait, Map<String, Object>? arguments}) {
     if (exchange == null) {
       throw ArgumentError("Exchange cannot be null");
     }
@@ -101,7 +101,7 @@ class _QueueImpl implements Queue {
   }
 
   void publish(Object message,
-      {MessageProperties properties,
+      {MessageProperties? properties,
       bool mandatory = false,
       bool immediate = false}) {
     BasicPublish pubRequest = BasicPublish()
@@ -116,12 +116,12 @@ class _QueueImpl implements Queue {
   }
 
   Future<Consumer> consume(
-      {String consumerTag,
+      {String? consumerTag,
       bool noLocal = false,
       bool noAck = true,
       bool exclusive = false,
       bool noWait = false,
-      Map<String, Object> arguments}) {
+      Map<String, Object>? arguments}) {
     // If a consumer with the requested tag exists, return that
     if (consumerTag != null &&
         consumerTag.isNotEmpty &&
