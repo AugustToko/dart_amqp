@@ -10,67 +10,67 @@ class TypeEncoder {
   }
 
   void writeInt8(int value) {
-    Uint8List buf = Uint8List(1);
+    var buf = Uint8List(1);
     ByteData.view(buf.buffer).setInt8(0, value);
     _writer.addLast(buf);
   }
 
   void writeInt16(int value) {
-    Uint8List buf = Uint8List(2);
+    var buf = Uint8List(2);
     ByteData.view(buf.buffer).setInt16(0, value, endianess);
     _writer.addLast(buf);
   }
 
   void writeInt32(int value) {
-    Uint8List buf = Uint8List(4);
+    var buf = Uint8List(4);
     ByteData.view(buf.buffer).setInt32(0, value, endianess);
     _writer.addLast(buf);
   }
 
   void writeInt64(int value) {
-    Uint8List buf = Uint8List(8);
+    var buf = Uint8List(8);
     ByteData.view(buf.buffer).setInt64(0, value, endianess);
     _writer.addLast(buf);
   }
 
   void writeUInt8(int value) {
-    Uint8List buf = Uint8List(1);
+    var buf = Uint8List(1);
     ByteData.view(buf.buffer).setUint8(0, value);
     _writer.addLast(buf);
   }
 
   void writeUInt16(int value) {
-    Uint8List buf = Uint8List(2);
+    var buf = Uint8List(2);
     ByteData.view(buf.buffer).setUint16(0, value, endianess);
     _writer.addLast(buf);
   }
 
   void writeUInt32(int value) {
-    Uint8List buf = Uint8List(4);
+    var buf = Uint8List(4);
     ByteData.view(buf.buffer).setUint32(0, value, endianess);
     _writer.addLast(buf);
   }
 
   void writeUInt64(int value) {
-    Uint8List buf = Uint8List(8);
+    var buf = Uint8List(8);
     ByteData.view(buf.buffer).setUint64(0, value, endianess);
     _writer.addLast(buf);
   }
 
   writeFloat(double value) {
-    Uint8List buf = Uint8List(4);
+    var buf = Uint8List(4);
     ByteData.view(buf.buffer).setFloat32(0, value, endianess);
     _writer.addLast(buf);
   }
 
   writeDouble(double value) {
-    Uint8List buf = Uint8List(8);
+    var buf = Uint8List(8);
     ByteData.view(buf.buffer).setFloat64(0, value, endianess);
     _writer.addLast(buf);
   }
 
   void writeBits(List<bool?> bits) {
-    int mask = 0;
+    var mask = 0;
 
     for (int maskOffset = 0, index = 0;
         index < bits.length;
@@ -96,10 +96,10 @@ class TypeEncoder {
       return;
     }
 
-    List<int> data = utf8.encode(value);
+    var data = utf8.encode(value);
 
     if (data.length > 255) {
-      throw ArgumentError("Short string values should have a length <= 255");
+      throw ArgumentError('Short string values should have a length <= 255');
     }
 
     // Write the length followed by the actual bytes
@@ -113,7 +113,7 @@ class TypeEncoder {
       return;
     }
 
-    List<int> data = utf8.encode(value);
+    var data = utf8.encode(value);
 
     // Write the length followed by the actual bytes
     writeUInt32(data.length);
@@ -136,7 +136,7 @@ class TypeEncoder {
       return;
     }
 
-    TypeEncoder buffer = TypeEncoder();
+    var buffer = TypeEncoder();
 
     // Encode each keypair to the buffer
     table.forEach((String fieldName, Object? value) {
@@ -146,8 +146,8 @@ class TypeEncoder {
 
     // Now that the length in bytes is known append it to output
     // followed by the buffered data
-    writeInt32(buffer.writer!.lengthInBytes);
-    writer!.addLast(buffer.writer!.joinChunks());
+    writeInt32(buffer.writer.lengthInBytes);
+    writer.addLast(buffer.writer.joinChunks());
   }
 
   void writeArray(String fieldName, Iterable value) {
@@ -156,14 +156,14 @@ class TypeEncoder {
       return;
     }
 
-    TypeEncoder buffer = TypeEncoder();
+    var buffer = TypeEncoder();
 
     value.forEach(((Object v) => buffer._writeField(fieldName, v)) as void Function(dynamic));
 
     // Now that the length in bytes is known append it to output
     // followed by the buffered data
-    writeInt32(buffer.writer!.lengthInBytes);
-    writer!.addLast(buffer.writer!.joinChunks());
+    writeInt32(buffer.writer.lengthInBytes);
+    writer.addLast(buffer.writer.joinChunks());
   }
 
   void _writeField(String fieldName, Object? value) {

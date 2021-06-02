@@ -21,7 +21,7 @@ class ProtocolHeader implements Header {
 
   void serialize(TypeEncoder encoder) {
     encoder
-      ..writer!.addLast(Uint8List.fromList(ascii.encode("AMQP")))
+      ..writer.addLast(Uint8List.fromList(ascii.encode('AMQP')))
       ..writeUInt8(protocolVersion)
       ..writeUInt8(majorVersion)
       ..writeUInt8(minorVersion)

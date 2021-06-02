@@ -89,7 +89,7 @@ class _ChannelImpl implements Channel {
     // 4) C : ConnectionOpen, S : ConnectionOpenOk
     switch (serverMessage.message.runtimeType) {
       case ConnectionStart:
-        ConnectionStart serverResponse =
+        var serverResponse =
             (serverMessage.message as ConnectionStart);
 
         // Check if the currently supplied authentication provider is supported by the server.
@@ -100,7 +100,7 @@ class _ChannelImpl implements Channel {
           return;
         }
 
-        ConnectionStartOk clientResponse = ConnectionStartOk()
+        var clientResponse = ConnectionStartOk()
           ..clientProperties = {
             "product": "Dart AMQP client",
             "version": "0.0.1",
@@ -115,10 +115,10 @@ class _ChannelImpl implements Channel {
         writeMessage(clientResponse);
         break;
       case ConnectionSecure:
-        ConnectionSecure serverResponse =
+        var serverResponse =
             serverMessage.message as ConnectionSecure;
 
-        ConnectionSecureOk clientResponse = ConnectionSecureOk()
+        var clientResponse = ConnectionSecureOk()
           ..response = _client.settings!.authProvider
               .answerChallenge(serverResponse.challenge);
 
@@ -127,7 +127,7 @@ class _ChannelImpl implements Channel {
         writeMessage(clientResponse);
         break;
       case ConnectionTune:
-        ConnectionTune serverResponse = serverMessage.message as ConnectionTune;
+        var serverResponse = serverMessage.message as ConnectionTune;
 
         if (_client.tuningSettings == null) throw Exception();
 
@@ -140,7 +140,7 @@ class _ChannelImpl implements Channel {
           ..heartbeatPeriod = Duration.zero;
 
         // Respond with the mirrored tuning settings
-        ConnectionTuneOk clientResponse = ConnectionTuneOk()
+        var clientResponse = ConnectionTuneOk()
           ..frameMax = serverResponse.frameMax
           ..channelMax = _client.tuningSettings!.maxChannels
           ..heartbeat = 0;
@@ -150,7 +150,7 @@ class _ChannelImpl implements Channel {
 
         // Also respond with a connection open request. The _channelOpened future has already been
         // pushed to the pending operations stack in the constructor so we do not need to do it here
-        ConnectionOpen openRequest = ConnectionOpen()
+        var openRequest = ConnectionOpen()
           ..virtualHost = _client.settings!.virtualHost;
         _lastHandshakeMessage = clientResponse;
         writeMessage(openRequest);
@@ -185,7 +185,6 @@ class _ChannelImpl implements Channel {
     _channelClosed = Completer<Channel>();
 
     classId ??= 0;
-    methodId ??= 0;
 
     // Channel #0 should close the connection instead of closing the channel
     Message closeRequest;
@@ -245,7 +244,7 @@ class _ChannelImpl implements Channel {
         break;
       // Queues
       case QueueDeclareOk:
-        QueueDeclareOk serverResponse = serverMessage.message as QueueDeclareOk;
+        var serverResponse = serverMessage.message as QueueDeclareOk;
         (_pendingOperationPayloads.first as _QueueImpl)
           .._name = serverResponse.queue
           .._messageCount = serverResponse.messageCount
@@ -264,21 +263,21 @@ class _ChannelImpl implements Channel {
         _completeOperation(serverMessage.message);
         break;
       case BasicConsumeOk:
-        BasicConsumeOk serverResponse =
+        var serverResponse =
             (serverMessage.message as BasicConsumeOk);
-        _ConsumerImpl consumer = (_pendingOperationPayloads.first
+        var consumer = (_pendingOperationPayloads.first
             as _ConsumerImpl)
           .._tag = serverResponse.consumerTag;
         _consumers[serverResponse.consumerTag] = consumer;
         _completeOperation(serverResponse);
         break;
       case BasicCancelOk:
-        BasicCancelOk serverResponse = (serverMessage.message as BasicCancelOk);
+        var serverResponse = (serverMessage.message as BasicCancelOk);
         _consumers.remove(serverResponse.consumerTag);
         _completeOperation(serverResponse);
         break;
       case BasicReturn:
-        BasicReturn? serverResponse = (serverMessage.message as BasicReturn?);
+        var serverResponse = (serverMessage.message as BasicReturn?);
         if (_basicReturnStream != null &&
             _basicReturnStream.hasListener &&
             !_basicReturnStream.isClosed) {
@@ -287,8 +286,8 @@ class _ChannelImpl implements Channel {
         }
         break;
       case BasicDeliver:
-        BasicDeliver serverResponse = (serverMessage.message as BasicDeliver);
-        _ConsumerImpl? target = _consumers[serverResponse.consumerTag];
+        var serverResponse = (serverMessage.message as BasicDeliver);
+        var target = _consumers[serverResponse.consumerTag];
 
         // no cosumer with tag
         if (target == null) {
@@ -326,7 +325,7 @@ class _ChannelImpl implements Channel {
     late Exception ex;
     switch (serverResponse.runtimeType) {
       case ConnectionClose:
-        ConnectionClose closeResponse = serverResponse as ConnectionClose;
+        var closeResponse = serverResponse as ConnectionClose;
         ex = ConnectionException(
             closeResponse.replyText,
             ErrorType.valueOf(closeResponse.replyCode),
@@ -339,7 +338,7 @@ class _ChannelImpl implements Channel {
 
         break;
       case ChannelClose:
-        ChannelClose closeResponse = serverResponse as ChannelClose;
+        var closeResponse = serverResponse as ChannelClose;
 
         // If we got a NOT_FOUND error and we have a pending Queue or Exchange payload emit a QueueNotFoundException
         if (closeResponse.replyCode == ErrorType.NOT_FOUND.value &&
@@ -379,7 +378,7 @@ class _ChannelImpl implements Channel {
       return;
     }
 
-    bool flagChannelAsClosed = false;
+    var flagChannelAsClosed = false;
 
     if (exception is FatalException || exception is ChannelException) {
       flagChannelAsClosed = true;
@@ -434,7 +433,7 @@ class _ChannelImpl implements Channel {
       bool autoDelete = false,
       bool noWait = false,
       Map<String, Object>? arguments}) {
-    QueueDeclare queueRequest = QueueDeclare()
+    var queueRequest = QueueDeclare()
       ..reserved_1 = 0
       ..queue = name
       ..passive = passive
@@ -444,7 +443,7 @@ class _ChannelImpl implements Channel {
       ..noWait = noWait
       ..arguments = arguments;
 
-    Completer<Queue> opCompleter = Completer<Queue>();
+    var opCompleter = Completer<Queue>();
     writeMessage(queueRequest,
         completer: opCompleter, futurePayload: _QueueImpl(this, name));
     return opCompleter.future;
@@ -452,7 +451,7 @@ class _ChannelImpl implements Channel {
 
   Future<Queue> privateQueue(
       {bool noWait = false, Map<String, Object>? arguments}) {
-    QueueDeclare queueRequest = QueueDeclare()
+    var queueRequest = QueueDeclare()
       ..reserved_1 = 0
       ..queue = null
       ..passive = false
@@ -462,7 +461,7 @@ class _ChannelImpl implements Channel {
       ..noWait = noWait
       ..arguments = arguments;
 
-    Completer<Queue> opCompleter = Completer<Queue>();
+    var opCompleter = Completer<Queue>();
     writeMessage(queueRequest,
         completer: opCompleter, futurePayload: _QueueImpl(this, ""));
     return opCompleter.future;
@@ -479,7 +478,7 @@ class _ChannelImpl implements Channel {
     if (type == null) {
       throw ArgumentError("The type of the exchange needs to be specified");
     }
-    ExchangeDeclare exchangeRequest = ExchangeDeclare()
+    var exchangeRequest = ExchangeDeclare()
       ..reserved_1 = 0
       ..exchange = name
       ..type = type.value
@@ -490,7 +489,7 @@ class _ChannelImpl implements Channel {
       ..noWait = noWait
       ..arguments = arguments;
 
-    Completer<Exchange> opCompleter = Completer<Exchange>();
+    var opCompleter = Completer<Exchange>();
     writeMessage(exchangeRequest,
         completer: opCompleter, futurePayload: _ExchangeImpl(this, name, type));
     return opCompleter.future;
@@ -507,19 +506,18 @@ class _ChannelImpl implements Channel {
   Future<Channel> qos(int? prefetchSize, int prefetchCount,
       {bool global = true}) {
     prefetchSize ??= 0;
-    prefetchCount ??= 0;
-    BasicQos qosRequest = BasicQos()
+    var qosRequest = BasicQos()
       ..prefetchSize = prefetchSize
       ..prefetchCount = prefetchCount
       ..global = global;
 
-    Completer<Channel> opCompleter = Completer<Channel>();
+    var opCompleter = Completer<Channel>();
     writeMessage(qosRequest, completer: opCompleter, futurePayload: this);
     return opCompleter.future;
   }
 
   void ack(int? deliveryTag, {bool multiple = false}) {
-    BasicAck ackRequest = BasicAck()
+    var ackRequest = BasicAck()
       ..deliveryTag = deliveryTag
       ..multiple = multiple;
 
@@ -527,38 +525,38 @@ class _ChannelImpl implements Channel {
   }
 
   Future<Channel> select() {
-    TxSelect selectRequest = TxSelect();
-    Completer<Channel> opCompleter = Completer<Channel>();
+    var selectRequest = TxSelect();
+    var opCompleter = Completer<Channel>();
     writeMessage(selectRequest, completer: opCompleter, futurePayload: this);
     return opCompleter.future;
   }
 
   Future<Channel> commit() {
-    TxCommit commitRequest = TxCommit();
-    Completer<Channel> opCompleter = Completer<Channel>();
+    var commitRequest = TxCommit();
+    var opCompleter = Completer<Channel>();
     writeMessage(commitRequest, completer: opCompleter, futurePayload: this);
     return opCompleter.future;
   }
 
   Future<Channel> rollback() {
-    TxRollback rollbackRequest = TxRollback();
-    Completer<Channel> opCompleter = Completer<Channel>();
+    var rollbackRequest = TxRollback();
+    var opCompleter = Completer<Channel>();
     writeMessage(rollbackRequest, completer: opCompleter, futurePayload: this);
     return opCompleter.future;
   }
 
   Future<Channel> flow(bool active) {
-    ChannelFlow flowRequest = ChannelFlow()..active = active;
+    var flowRequest = ChannelFlow()..active = active;
 
-    Completer<Channel> opCompleter = Completer<Channel>();
+    var opCompleter = Completer<Channel>();
     writeMessage(flowRequest, completer: opCompleter, futurePayload: this);
     return opCompleter.future;
   }
 
   Future<Channel> recover(bool requeue) {
-    BasicRecover recoverRequest = BasicRecover()..requeue = requeue;
+    var recoverRequest = BasicRecover()..requeue = requeue;
 
-    Completer<Channel> opCompleter = Completer<Channel>();
+    var opCompleter = Completer<Channel>();
     writeMessage(recoverRequest, completer: opCompleter, futurePayload: this);
     return opCompleter.future;
   }
